@@ -1,0 +1,8 @@
+# Exclude Python backend and database files from Vercel frontend build
+backend/
+requirements.txt
+seed_and_reset.py
+test_validate.py
+test_validate_http.py
+supabase/
+venv/
