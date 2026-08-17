@@ -4,14 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "npx vite",
+    "build": "npx vite build",
+    "preview": "npx vite preview"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
-  },
-  "devDependencies": {
-    "vite": "^5.1.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "vite": "^5.4.0"
   }
 }
