@@ -1,25 +1,31 @@
 // Supabase Client and API Abstraction Layer for CoreInventory
 
-const SUPABASE_URL = (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL)
-  ? process.env.VITE_SUPABASE_URL
-  : (window.VITE_SUPABASE_URL || "https://syncstock-coreinventory.supabase.co");
+function getSupabaseClient() {
+    if (window.supabaseClient) {
+        return window.supabaseClient;
+    }
 
-const SUPABASE_ANON_KEY = (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY)
-  ? process.env.VITE_SUPABASE_ANON_KEY
-  : (window.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5bmNzdG9jay1jb3JlaW52ZW50b3J5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzg4ODAwMDAsImV4cCI6MjAwNDQ1NjAwMH0.sample_anon_key_for_development");
+    const url = (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_URL)
+        ? process.env.VITE_SUPABASE_URL
+        : (window.VITE_SUPABASE_URL || "https://your-supabase-project.supabase.co");
 
-// Initialize Supabase JS Client
-let supabase = null;
-if (typeof window !== 'undefined' && window.supabase) {
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabase;
+    const anonKey = (typeof process !== 'undefined' && process.env?.VITE_SUPABASE_ANON_KEY)
+        ? process.env.VITE_SUPABASE_ANON_KEY
+        : (window.VITE_SUPABASE_ANON_KEY || "your-supabase-anon-key");
+
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+        window.supabaseClient = window.supabase.createClient(url, anonKey);
+        return window.supabaseClient;
+    }
+    return null;
 }
 
 // Unified API Adapter over Supabase Database & Edge Functions
 async function apiFetch(endpoint, options = {}) {
-    if (!supabase && typeof window !== 'undefined' && window.supabase) {
-        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        window.supabaseClient = supabase;
+    const sb = getSupabaseClient();
+    if (!sb) {
+        console.warn("Supabase client not initialized yet.");
+        return { success: false, message: "Supabase client not initialized. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env" };
     }
 
     const method = options.method || "GET";
@@ -28,9 +34,9 @@ async function apiFetch(endpoint, options = {}) {
     try {
         // --- 1. Dashboard Stats ---
         if (endpoint === "/api/dashboard/stats") {
-            const { count: totalProducts } = await supabase.from("products").select("*", { count: 'exact', head: true });
+            const { count: totalProducts } = await sb.from("products").select("*", { count: 'exact', head: true });
 
-            const { data: stockData } = await supabase.from("products").select("id, name, sku, reorder_level, stock_levels(quantity)");
+            const { data: stockData } = await sb.from("products").select("id, name, sku, reorder_level, stock_levels(quantity)");
 
             let lowStockCount = 0;
             let outOfStockCount = 0;
@@ -42,7 +48,7 @@ async function apiFetch(endpoint, options = {}) {
                     outOfStockCount++;
                 } else if (p.reorder_level > 0 && totalQty <= p.reorder_level) {
                     lowStockCount++;
-                    lowStockProductsList.append ? lowStockProductsList.append : lowStockProductsList.push({
+                    lowStockProductsList.push({
                         id: p.id,
                         name: p.name,
                         sku: p.sku,
@@ -53,17 +59,17 @@ async function apiFetch(endpoint, options = {}) {
             });
 
             const pendingStatuses = ['draft', 'waiting', 'ready'];
-            const { count: pendingReceipts } = await supabase.from("receipts").select("*", { count: 'exact', head: true }).in("status", pendingStatuses);
-            const { count: pendingDeliveries } = await supabase.from("deliveries").select("*", { count: 'exact', head: true }).in("status", pendingStatuses);
+            const { count: pendingReceipts } = await sb.from("receipts").select("*", { count: 'exact', head: true }).in("status", pendingStatuses);
+            const { count: pendingDeliveries } = await sb.from("deliveries").select("*", { count: 'exact', head: true }).in("status", pendingStatuses);
 
             const today = new Date().toISOString().split('T')[0];
-            const { count: lateReceipts } = await supabase.from("receipts").select("*", { count: 'exact', head: true }).in("status", pendingStatuses).lt("scheduled_date", today);
-            const { count: operatingReceipts } = await supabase.from("receipts").select("*", { count: 'exact', head: true }).eq("status", "ready");
-            const { count: waitingReceipts } = await supabase.from("receipts").select("*", { count: 'exact', head: true }).eq("status", "waiting");
+            const { count: lateReceipts } = await sb.from("receipts").select("*", { count: 'exact', head: true }).in("status", pendingStatuses).lt("scheduled_date", today);
+            const { count: operatingReceipts } = await sb.from("receipts").select("*", { count: 'exact', head: true }).eq("status", "ready");
+            const { count: waitingReceipts } = await sb.from("receipts").select("*", { count: 'exact', head: true }).eq("status", "waiting");
 
-            const { count: lateDeliveries } = await supabase.from("deliveries").select("*", { count: 'exact', head: true }).in("status", pendingStatuses).lt("scheduled_date", today);
-            const { count: operatingDeliveries } = await supabase.from("deliveries").select("*", { count: 'exact', head: true }).eq("status", "ready");
-            const { count: waitingDeliveries } = await supabase.from("deliveries").select("*", { count: 'exact', head: true }).eq("status", "waiting");
+            const { count: lateDeliveries } = await sb.from("deliveries").select("*", { count: 'exact', head: true }).in("status", pendingStatuses).lt("scheduled_date", today);
+            const { count: operatingDeliveries } = await sb.from("deliveries").select("*", { count: 'exact', head: true }).eq("status", "ready");
+            const { count: waitingDeliveries } = await sb.from("deliveries").select("*", { count: 'exact', head: true }).eq("status", "waiting");
 
             return {
                 success: true,
@@ -89,7 +95,7 @@ async function apiFetch(endpoint, options = {}) {
             if (endpoint.includes("/stock")) {
                 const parts = endpoint.split("/");
                 const productId = parseInt(parts[3]);
-                const { data } = await supabase
+                const { data } = await sb
                     .from("stock_levels")
                     .select("quantity, location_id, locations(id, name, warehouses(name))")
                     .eq("product_id", productId);
@@ -105,7 +111,7 @@ async function apiFetch(endpoint, options = {}) {
             }
 
             if (method === "GET") {
-                const { data: products } = await supabase.from("products").select("*, stock_levels(quantity)");
+                const { data: products } = await sb.from("products").select("*, stock_levels(quantity)");
                 const results = (products || []).map(p => {
                     const onHand = (p.stock_levels || []).reduce((acc, curr) => acc + (curr.quantity || 0), 0);
                     return {
@@ -123,14 +129,14 @@ async function apiFetch(endpoint, options = {}) {
             }
 
             if (method === "POST") {
-                const { data, error } = await supabase.from("products").insert(body).select().single();
+                const { data, error } = await sb.from("products").insert(body).select().single();
                 if (error) return { success: false, message: error.message };
                 return { success: true, data: { ...data, on_hand: 0 } };
             }
 
             if (method === "PUT") {
                 const id = parseInt(endpoint.split("/").pop());
-                const { data, error } = await supabase.from("products").update(body).eq("id", id).select().single();
+                const { data, error } = await sb.from("products").update(body).eq("id", id).select().single();
                 if (error) return { success: false, message: error.message };
                 return { success: true, data };
             }
@@ -139,26 +145,26 @@ async function apiFetch(endpoint, options = {}) {
         // --- 3. Warehouses & Locations ---
         if (endpoint.startsWith("/api/warehouses")) {
             if (method === "GET") {
-                const { data: warehouses } = await supabase.from("warehouses").select("*, locations(*)");
+                const { data: warehouses } = await sb.from("warehouses").select("*, locations(*)");
                 return { success: true, data: warehouses || [] };
             }
 
             if (method === "POST") {
-                const { data, error } = await supabase.from("warehouses").insert(body).select().single();
+                const { data, error } = await sb.from("warehouses").insert(body).select().single();
                 if (error) return { success: false, message: error.message };
                 return { success: true, data: { ...data, locations: [] } };
             }
 
             if (method === "PUT") {
                 const id = parseInt(endpoint.split("/").pop());
-                const { data, error } = await supabase.from("warehouses").update(body).eq("id", id).select().single();
+                const { data, error } = await sb.from("warehouses").update(body).eq("id", id).select().single();
                 if (error) return { success: false, message: error.message };
                 return { success: true, data };
             }
         }
 
         if (endpoint === "/api/locations" && method === "POST") {
-            const { data, error } = await supabase.from("locations").insert(body).select().single();
+            const { data, error } = await sb.from("locations").insert(body).select().single();
             if (error) return { success: false, message: error.message };
             return { success: true, data };
         }
@@ -167,22 +173,22 @@ async function apiFetch(endpoint, options = {}) {
         if (endpoint.startsWith("/api/receipts")) {
             if (endpoint.endsWith("/validate")) {
                 const id = parseInt(endpoint.split("/")[3]);
-                const { data: session } = await supabase.auth.getSession();
+                const { data: session } = await sb.auth.getSession();
                 const userId = session?.session?.user?.id;
-                const { data, error } = await supabase.rpc("validate_receipt", { p_receipt_id: id, p_user_id: userId });
+                const { data, error } = await sb.rpc("validate_receipt", { p_receipt_id: id, p_user_id: userId });
                 if (error) return { success: false, message: error.message };
                 return { success: true, data };
             }
 
             if (endpoint.endsWith("/cancel")) {
                 const id = parseInt(endpoint.split("/")[3]);
-                const { error } = await supabase.from("receipts").update({ status: "cancelled" }).eq("id", id);
+                const { error } = await sb.from("receipts").update({ status: "cancelled" }).eq("id", id);
                 if (error) return { success: false, message: error.message };
                 return { success: true, message: "Receipt cancelled" };
             }
 
             if (method === "GET" && endpoint === "/api/receipts") {
-                const { data: receipts } = await supabase.from("receipts").select("*, warehouses(name), receipt_lines(count)").order("created_at", { ascending: false });
+                const { data: receipts } = await sb.from("receipts").select("*, warehouses(name), receipt_lines(count)").order("created_at", { ascending: false });
                 const list = (receipts || []).map(r => ({
                     id: r.id,
                     reference: r.reference,
@@ -199,7 +205,7 @@ async function apiFetch(endpoint, options = {}) {
 
             if (method === "GET" && endpoint.match(/\/api\/receipts\/\d+$/)) {
                 const id = parseInt(endpoint.split("/").pop());
-                const { data: receipt } = await supabase.from("receipts").select("*, warehouses(name), receipt_lines(*, products(name), locations(name))").eq("id", id).single();
+                const { data: receipt } = await sb.from("receipts").select("*, warehouses(name), receipt_lines(*, products(name), locations(name))").eq("id", id).single();
                 if (!receipt) return { success: false, message: "Receipt not found" };
 
                 const formatted = {
@@ -227,15 +233,15 @@ async function apiFetch(endpoint, options = {}) {
             if (method === "POST") {
                 const { lines, ...header } = body;
                 if (!header.reference) {
-                    const { count } = await supabase.from("receipts").select("*", { count: 'exact', head: true });
+                    const { count } = await sb.from("receipts").select("*", { count: 'exact', head: true });
                     header.reference = `WH/IN/${String((count || 0) + 1).padStart(5, '0')}`;
                 }
-                const { data: rec, error } = await supabase.from("receipts").insert(header).select().single();
+                const { data: rec, error } = await sb.from("receipts").insert(header).select().single();
                 if (error) return { success: false, message: error.message };
 
                 if (lines && lines.length > 0) {
                     const linePayloads = lines.map(l => ({ ...l, receipt_id: rec.id }));
-                    await supabase.from("receipt_lines").insert(linePayloads);
+                    await sb.from("receipt_lines").insert(linePayloads);
                 }
                 return { success: true, data: { id: rec.id } };
             }
@@ -245,22 +251,22 @@ async function apiFetch(endpoint, options = {}) {
         if (endpoint.startsWith("/api/deliveries")) {
             if (endpoint.endsWith("/validate")) {
                 const id = parseInt(endpoint.split("/")[3]);
-                const { data: session } = await supabase.auth.getSession();
+                const { data: session } = await sb.auth.getSession();
                 const userId = session?.session?.user?.id;
-                const { data, error } = await supabase.rpc("validate_delivery", { p_delivery_id: id, p_user_id: userId });
+                const { data, error } = await sb.rpc("validate_delivery", { p_delivery_id: id, p_user_id: userId });
                 if (error) return { success: false, message: error.message };
                 return { success: true, data };
             }
 
             if (endpoint.endsWith("/cancel")) {
                 const id = parseInt(endpoint.split("/")[3]);
-                const { error } = await supabase.from("deliveries").update({ status: "cancelled" }).eq("id", id);
+                const { error } = await sb.from("deliveries").update({ status: "cancelled" }).eq("id", id);
                 if (error) return { success: false, message: error.message };
                 return { success: true, message: "Delivery cancelled" };
             }
 
             if (method === "GET" && endpoint === "/api/deliveries") {
-                const { data: deliveries } = await supabase.from("deliveries").select("*, warehouses(name), delivery_lines(count)").order("created_at", { ascending: false });
+                const { data: deliveries } = await sb.from("deliveries").select("*, warehouses(name), delivery_lines(count)").order("created_at", { ascending: false });
                 const list = (deliveries || []).map(d => ({
                     id: d.id,
                     reference: d.reference,
@@ -277,7 +283,7 @@ async function apiFetch(endpoint, options = {}) {
 
             if (method === "GET" && endpoint.match(/\/api\/deliveries\/\d+$/)) {
                 const id = parseInt(endpoint.split("/").pop());
-                const { data: delivery } = await supabase.from("deliveries").select("*, warehouses(name), delivery_lines(*, products(name), locations(name))").eq("id", id).single();
+                const { data: delivery } = await sb.from("deliveries").select("*, warehouses(name), delivery_lines(*, products(name), locations(name))").eq("id", id).single();
                 if (!delivery) return { success: false, message: "Delivery not found" };
 
                 const formatted = {
@@ -305,15 +311,15 @@ async function apiFetch(endpoint, options = {}) {
             if (method === "POST") {
                 const { lines, ...header } = body;
                 if (!header.reference) {
-                    const { count } = await supabase.from("deliveries").select("*", { count: 'exact', head: true });
+                    const { count } = await sb.from("deliveries").select("*", { count: 'exact', head: true });
                     header.reference = `WH/OUT/${String((count || 0) + 1).padStart(5, '0')}`;
                 }
-                const { data: del, error } = await supabase.from("deliveries").insert(header).select().single();
+                const { data: del, error } = await sb.from("deliveries").insert(header).select().single();
                 if (error) return { success: false, message: error.message };
 
                 if (lines && lines.length > 0) {
                     const linePayloads = lines.map(l => ({ ...l, delivery_id: del.id }));
-                    await supabase.from("delivery_lines").insert(linePayloads);
+                    await sb.from("delivery_lines").insert(linePayloads);
                 }
                 return { success: true, data: { id: del.id } };
             }
@@ -323,15 +329,15 @@ async function apiFetch(endpoint, options = {}) {
         if (endpoint.startsWith("/api/transfers")) {
             if (endpoint.endsWith("/validate")) {
                 const id = parseInt(endpoint.split("/")[3]);
-                const { data: session } = await supabase.auth.getSession();
+                const { data: session } = await sb.auth.getSession();
                 const userId = session?.session?.user?.id;
-                const { data, error } = await supabase.rpc("validate_transfer", { p_transfer_id: id, p_user_id: userId });
+                const { data, error } = await sb.rpc("validate_transfer", { p_transfer_id: id, p_user_id: userId });
                 if (error) return { success: false, message: error.message };
                 return { success: true, data };
             }
 
             if (method === "GET" && endpoint === "/api/transfers") {
-                const { data: transfers } = await supabase.from("internal_transfers").select("*, internal_transfer_lines(count)").order("created_at", { ascending: false });
+                const { data: transfers } = await sb.from("internal_transfers").select("*, internal_transfer_lines(count)").order("created_at", { ascending: false });
                 const list = (transfers || []).map(t => ({
                     id: t.id,
                     reference: t.reference,
@@ -348,9 +354,9 @@ async function apiFetch(endpoint, options = {}) {
 
         // --- 7. Adjustments ---
         if (endpoint === "/api/adjustments" && method === "POST") {
-            const { data: session } = await supabase.auth.getSession();
+            const { data: session } = await sb.auth.getSession();
             const userId = session?.session?.user?.id;
-            const { data, error } = await supabase.rpc("adjust_stock", {
+            const { data, error } = await sb.rpc("adjust_stock", {
                 p_product_id: body.product_id,
                 p_location_id: body.location_id,
                 p_new_quantity: body.new_quantity,
@@ -363,7 +369,7 @@ async function apiFetch(endpoint, options = {}) {
 
         // --- 8. Moves & Logs ---
         if (endpoint === "/api/moves") {
-            const { data: moves } = await supabase.from("stock_moves").select("*, products(name)").order("created_at", { ascending: false }).limit(100);
+            const { data: moves } = await sb.from("stock_moves").select("*, products(name)").order("created_at", { ascending: false }).limit(100);
             const list = (moves || []).map(m => ({
                 id: m.id,
                 created_at: m.created_at,
@@ -376,7 +382,7 @@ async function apiFetch(endpoint, options = {}) {
         }
 
         if (endpoint === "/api/logs") {
-            const { data: logs } = await supabase.from("operation_logs").select("*, profiles(name)").order("timestamp", { ascending: false }).limit(100);
+            const { data: logs } = await sb.from("operation_logs").select("*, profiles(name)").order("timestamp", { ascending: false }).limit(100);
             const list = (logs || []).map(l => ({
                 id: l.id,
                 operation_type: l.operation_type,
@@ -390,25 +396,24 @@ async function apiFetch(endpoint, options = {}) {
 
         // --- 9. Users / Approvals ---
         if (endpoint === "/api/users/pending") {
-            const { data: users } = await supabase.from("profiles").select("*").eq("is_approved", false);
+            const { data: users } = await sb.from("profiles").select("*").eq("is_approved", false);
             return { success: true, data: users || [] };
         }
 
         if (endpoint.includes("/approve")) {
             const id = endpoint.split("/")[3];
-            const { data, error } = await supabase.from("profiles").update({ is_approved: true }).eq("id", id).select().single();
+            const { data, error } = await sb.from("profiles").update({ is_approved: true }).eq("id", id).select().single();
             if (error) return { success: false, message: error.message };
             return { success: true, data, message: "User approved successfully" };
         }
 
         if (endpoint.includes("/reject")) {
             const id = endpoint.split("/")[3];
-            const { error } = await supabase.from("profiles").delete().eq("id", id);
+            const { error } = await sb.from("profiles").delete().eq("id", id);
             if (error) return { success: false, message: error.message };
             return { success: true, message: "User registration rejected" };
         }
 
-        // Default fallback: return dummy success or query
         return { success: true, message: "Request processed" };
 
     } catch (err) {
@@ -418,4 +423,5 @@ async function apiFetch(endpoint, options = {}) {
 }
 
 // Global exposure
+window.getSupabaseClient = getSupabaseClient;
 window.apiFetch = apiFetch;

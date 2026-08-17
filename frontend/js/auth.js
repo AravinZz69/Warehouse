@@ -5,10 +5,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const loginForm = document.getElementById("login-form");
     const signupForm = document.getElementById("signup-form");
-    const signupVerifyForm = document.getElementById("signup-verify-form");
     const forgotForm = document.getElementById("forgot-form");
-    const verifyForm = document.getElementById("verify-form");
-    const resetForm = document.getElementById("reset-form");
 
     const showError = (msg) => {
         if (errorMsg) {
@@ -31,24 +28,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (successMsg) successMsg.style.display = "none";
     };
 
-    const switchStep = (stepNum) => {
-        document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
-        document.querySelectorAll(".step-dot").forEach(el => el.classList.remove("active"));
-
-        const stepEl = document.getElementById(`step-${stepNum}`);
-        if (stepEl) stepEl.classList.add("active");
-
-        for (let i = 1; i <= stepNum; i++) {
-            const dotEl = document.getElementById(`dot-${i}`);
-            if (dotEl) dotEl.classList.add("active");
+    const getSb = () => {
+        if (typeof window.getSupabaseClient === 'function') {
+            return window.getSupabaseClient();
         }
-    };
-
-    const getSupabase = () => {
-        return window.supabaseClient || (window.supabase ? window.supabase.createClient(
-            window.VITE_SUPABASE_URL || "https://syncstock-coreinventory.supabase.co",
-            window.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5bmNzdG9jay1jb3JlaW52ZW50b3J5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzg4ODAwMDAsImV4cCI6MjAwNDQ1NjAwMH0.sample_anon_key_for_development"
-        ) : null);
+        return window.supabaseClient || null;
     };
 
     // -- LOGIN LOGIC --
@@ -70,16 +54,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = document.getElementById("password").value;
 
             try {
-                const supabase = getSupabase();
-                if (!supabase) throw new Error("Supabase client not loaded");
+                const sb = getSb();
+                if (!sb) {
+                    showError("Supabase configuration missing. Please update VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.");
+                    return;
+                }
 
-                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
                 if (error) {
                     showError(error.message);
                 } else if (data && data.user) {
                     // Fetch user profile
-                    const { data: profile } = await supabase
+                    const { data: profile } = await sb
                         .from("profiles")
                         .select("*")
                         .eq("id", data.user.id)
@@ -87,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     const isApproved = profile ? profile.is_approved : true;
                     if (!isApproved) {
-                        await supabase.auth.signOut();
+                        await sb.auth.signOut();
                         showError("Your account is pending manager approval.");
                         return;
                     }
@@ -127,10 +114,13 @@ document.addEventListener("DOMContentLoaded", () => {
             const role = document.getElementById("role").value;
 
             try {
-                const supabase = getSupabase();
-                if (!supabase) throw new Error("Supabase client not loaded");
+                const sb = getSb();
+                if (!sb) {
+                    showError("Supabase configuration missing. Please update VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.");
+                    return;
+                }
 
-                const { data, error } = await supabase.auth.signUp({
+                const { data, error } = await sb.auth.signUp({
                     email,
                     password,
                     options: {
@@ -174,8 +164,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const email = document.getElementById("email").value;
 
             try {
-                const supabase = getSupabase();
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                const sb = getSb();
+                if (!sb) {
+                    showError("Supabase configuration missing. Please update VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.");
+                    return;
+                }
+                const { error } = await sb.auth.resetPasswordForEmail(email, {
                     redirectTo: window.location.origin + "/pages/login.html"
                 });
 
