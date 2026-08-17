@@ -9,7 +9,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'frontend/pages/login.html'),
+        index: resolve(__dirname, 'frontend/index.html'),
         login: resolve(__dirname, 'frontend/pages/login.html'),
         signup: resolve(__dirname, 'frontend/pages/signup.html'),
         forgot_password: resolve(__dirname, 'frontend/pages/forgot-password.html'),
@@ -31,6 +31,6 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    open: '/pages/login.html'
+    open: '/index.html'
   }
 });
