@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CoreInventory</title>
+  <link rel="stylesheet" crossorigin href="/assets/dashboard-3KR1_fGB.css">
+  <link rel="stylesheet" crossorigin href="/assets/global-Bxd33pP9.css">
+  <link rel="stylesheet" crossorigin href="/assets/layout-DdjFAefI.css">
+  <link rel="stylesheet" crossorigin href="/assets/products-DZ7yDdNg.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar"></div>
+        <div class="main-wrapper">
+            <div id="topnav"></div>
+
+            <div class="page-content" id="page-content">
+
+                <!-- low stock banner (hidden by default) -->
+                <div id="low-stock-banner" class="alert-banner" style="display:none">
+                    <span id="banner-text"></span>
+                    <a id="banner-link" href="products.html?filter=low_stock"
+                        style="color: var(--accent); font-weight: bold; margin-left: 10px;">View Products</a>
+                </div>
+
+                <!-- spinner while loading -->
+                <div id="spinner" class="spinner-wrap">
+                    <div class="spinner"></div>
+                </div>
+
+                <!-- KPI cards grid -->
+                <div id="stats-grid" class="stats-grid" style="display:none">
+
+                    <div class="kpi-card" onclick="window.location='products.html'">
+                        <div class="kpi-number" id="kpi-products">-</div>
+                        <div class="kpi-label">Total Products</div>
+                    </div>
+
+                    <div class="kpi-card" onclick="window.location='products.html?filter=low_stock'">
+                        <div class="kpi-number" id="kpi-low-stock">-</div>
+                        <div class="kpi-label">Low Stock items</div>
+                    </div>
+
+                    <div class="kpi-card" onclick="window.location='products.html?filter=out_of_stock'">
+                        <div class="kpi-number" id="kpi-out-of-stock" style="color: #dc2626;">-</div>
+                        <div class="kpi-label">Out of Stock items</div>
+                    </div>
+
+                    <div class="kpi-card" onclick="window.location='receipts.html'">
+                        <div class="kpi-number" id="kpi-receipts-pending">-</div>
+                        <div class="kpi-label">Pending Receipts</div>
+                    </div>
+
+                    <div class="kpi-card" onclick="window.location='deliveries.html'">
+                        <div class="kpi-number" id="kpi-deliveries-pending">-</div>
+                        <div class="kpi-label">Pending Deliveries</div>
+                    </div>
+
+                </div>
+
+                <!-- Summary cards -->
+                <div id="summary-row" class="summary-row" style="display:none">
+                    <div class="summary-card">
+                        <h3 style="margin-bottom: 12px; font-size: 1.1rem;">Inbound (Receipts)</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem;">Late: <strong id="sum-rec-late"
+                                style="color: #dc2626;">0</strong></p>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Operating: <strong
+                                id="sum-rec-operating" style="color: var(--badge-ready);">0</strong></p>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Waiting: <strong
+                                id="sum-rec-waiting" style="color: var(--badge-waiting);">0</strong></p>
+                        <button id="db-new-receipt-btn" class="btn-primary" style="margin-top: 15px;"
+                            onclick="window.location='operation-form.html?type=receipt'">+ New Receipt</button>
+                    </div>
+
+                    <div class="summary-card">
+                        <h3 style="margin-bottom: 12px; font-size: 1.1rem;">Outbound (Deliveries)</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem;">Late: <strong id="sum-del-late"
+                                style="color: #dc2626;">0</strong></p>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Operating: <strong
+                                id="sum-del-operating" style="color: var(--badge-ready);">0</strong></p>
+                        <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: 6px;">Waiting: <strong
+                                id="sum-del-waiting" style="color: var(--badge-waiting);">0</strong></p>
+                        <button id="db-new-delivery-btn" class="btn-primary" style="margin-top: 15px;"
+                            onclick="window.location='operation-form.html?type=delivery'">+ New Delivery</button>
+                    </div>
+                </div>
+
+                <!-- Low Stock Alerts Table -->
+                <div id="low-stock-section" style="display:none; margin-top: 24px;">
+                    <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--text-muted);">⚠️ Low Stock Alerts
+                    </h3>
+                    <table class="data-table" id="low-stock-table" style="margin-top: 0;">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>On Hand</th>
+                                <th>Reorder Level</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="low-stock-tbody">
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/layout.js"></script>
+    <script src="../js/dashboard.js"></script>
+</body>
+
+</html>

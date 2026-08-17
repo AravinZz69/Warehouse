@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Approvals - CoreInventory</title>
+    <style>
+        .approval-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .approval-stat {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .approval-stat-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 20px;
+            min-width: 140px;
+            text-align: center;
+        }
+
+        .approval-stat-card .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .approval-stat-card .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+    </style>
+  <link rel="stylesheet" crossorigin href="/assets/global-Bxd33pP9.css">
+  <link rel="stylesheet" crossorigin href="/assets/layout-DdjFAefI.css">
+  <link rel="stylesheet" crossorigin href="/assets/products-DZ7yDdNg.css">
+  <link rel="stylesheet" crossorigin href="/assets/operations-C4GvQRcz.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar"></div>
+        <div class="main-wrapper">
+            <div id="topnav"></div>
+
+            <div class="page-content">
+                <div class="page-header">
+                    <h2>Pending Account Approvals</h2>
+                </div>
+
+                <div id="success-banner" class="inline-banner success" style="display:none; margin-bottom: 20px;">
+                    <span id="success-text">Success message</span>
+                </div>
+                <div id="error-banner" class="inline-banner error" style="display:none; margin-bottom: 20px;">
+                    <span id="error-text">An error occurred</span>
+                </div>
+
+                <div id="spinner" class="spinner-wrap" style="display: flex;">
+                    <div class="spinner"></div>
+                </div>
+
+                <table class="data-table" id="users-table" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Signup Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-tbody">
+                        <!-- Loaded by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api.js?v=2"></script>
+    <script src="../js/layout.js"></script>
+    <script src="../js/users.js?v=2"></script>
+</body>
+
+</html>

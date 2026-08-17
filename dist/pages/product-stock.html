@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Stock - CoreInventory</title>
+  <link rel="stylesheet" crossorigin href="/assets/global-Bxd33pP9.css">
+  <link rel="stylesheet" crossorigin href="/assets/layout-DdjFAefI.css">
+  <link rel="stylesheet" crossorigin href="/assets/products-DZ7yDdNg.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar"></div>
+        <div class="main-wrapper">
+            <div id="topnav"></div>
+
+            <div class="page-content">
+                <button class="btn-secondary" id="back-btn" style="width:auto; margin-bottom: 20px;">← Back to
+                    Products</button>
+
+                <div class="page-header">
+                    <h2 id="page-title">Loading Stock Data...</h2>
+                </div>
+
+                <div id="spinner" class="spinner-wrap" style="display:none;">
+                    <div class="spinner"></div>
+                </div>
+
+                <table class="data-table" id="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Location Name</th>
+                            <th>Warehouse Name</th>
+                            <th>Quantity on Hand</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stock-tbody">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/layout.js"></script>
+    <script src="../js/product-stock.js"></script>
+</body>
+
+</html>

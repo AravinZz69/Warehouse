@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Move History - CoreInventory</title>
+  <link rel="stylesheet" crossorigin href="/assets/moves-CTO7PyaM.css">
+  <link rel="stylesheet" crossorigin href="/assets/global-Bxd33pP9.css">
+  <link rel="stylesheet" crossorigin href="/assets/layout-DdjFAefI.css">
+  <link rel="stylesheet" crossorigin href="/assets/products-DZ7yDdNg.css">
+  <link rel="stylesheet" crossorigin href="/assets/operations-C4GvQRcz.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar"></div>
+        <div class="main-wrapper">
+            <div id="topnav"></div>
+
+            <div class="page-content">
+                <div class="page-header">
+                    <h2 id="page-title">Move History</h2>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+                    <div class="filter-bar" id="type-filters" style="margin-bottom: 0;">
+                        <button class="filter-pill active" data-type="">All</button>
+                        <button class="filter-pill" data-type="receipt">Receipt</button>
+                        <button class="filter-pill" data-type="delivery">Delivery</button>
+                        <button class="filter-pill" data-type="transfer">Transfer</button>
+                        <button class="filter-pill" data-type="adjustment">Adjustment</button>
+
+                        <div style="width: 1px; height: 24px; background: var(--border); margin: 0 8px;"></div>
+
+                        <div class="date-range">
+                            <label>From</label>
+                            <input type="date" id="date-from">
+                            <label style="margin-left: 8px;">To</label>
+                            <input type="date" id="date-to">
+                        </div>
+
+                        <div style="width: 1px; height: 24px; background: var(--border); margin: 0 8px;"></div>
+
+                        <input type="text" class="input-field" id="search-input" placeholder="Search by product name..."
+                            style="max-width: 250px;">
+                    </div>
+
+                    <div class="view-toggles" style="display:flex; gap: 8px;">
+                        <button class="view-toggle-btn active" id="btn-view-list">≡ List</button>
+                        <button class="view-toggle-btn" id="btn-view-kanban">◫ Kanban</button>
+                    </div>
+                </div>
+
+                <div id="spinner" class="spinner-wrap" style="display:none;">
+                    <div class="spinner"></div>
+                </div>
+
+                <table class="data-table" id="moves-table">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Product</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Qty</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="moves-tbody">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+
+                <div id="empty-state" class="empty-state" style="display:none">
+                    No stock movements found.
+                </div>
+
+                <div id="kanban-view" class="kanban-board" style="display:none; margin-top: 16px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/layout.js"></script>
+    <script src="../js/moves.js"></script>
+</body>
+
+</html>

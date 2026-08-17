@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - CoreInventory</title>
+  <link rel="stylesheet" crossorigin href="/assets/global-Bxd33pP9.css">
+  <link rel="stylesheet" crossorigin href="/assets/auth-B2tiLAMw.css">
+</head>
+
+<body class="auth-page">
+
+    <div class="auth-card">
+        <div>
+            <h1>CoreInventory</h1>
+            <p class="subtitle">Create a new account</p>
+        </div>
+
+        <div class="step-indicator">
+            <div class="step-dot active" id="dot-1"></div>
+            <div class="step-dot" id="dot-2"></div>
+        </div>
+
+        <div id="error-msg" class="error-msg"></div>
+        <div id="success-msg" class="success-msg"></div>
+
+        <!-- STEP 1: Details -->
+        <div id="step-1" class="step active">
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" class="input-field" required autocomplete="name">
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" class="input-field" required autocomplete="email">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" class="input-field" required new-password>
+                </div>
+
+                <div class="form-group">
+                    <label for="role">Role</label>
+                    <select id="role" class="input-field" required>
+                        <option value="staff">Staff</option>
+                        <option value="manager">Manager</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-primary" id="signup-btn-step1">Next step</button>
+            </form>
+        </div>
+
+        <!-- STEP 2: Verify OTP -->
+        <div id="step-2" class="step">
+            <form id="signup-verify-form">
+                <p class="subtitle" style="margin-bottom: 10px;">Enter the OTP sent to your email</p>
+                <div class="form-group">
+                    <label for="otp">One Time Password</label>
+                    <input type="text" id="otp" class="input-field" required>
+                </div>
+                <button type="submit" class="btn-primary" id="signup-btn-step2">Verify & Sign Up</button>
+            </form>
+        </div>
+
+        <div style="text-align: center;">
+            <a href="login.html" class="auth-link" style="color: var(--text-muted);">Already have an account? Log in</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+</body>
+
+</html>

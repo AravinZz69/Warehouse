@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receipts - CoreInventory</title>
+  <link rel="stylesheet" crossorigin href="/assets/global-Bxd33pP9.css">
+  <link rel="stylesheet" crossorigin href="/assets/layout-DdjFAefI.css">
+  <link rel="stylesheet" crossorigin href="/assets/products-DZ7yDdNg.css">
+  <link rel="stylesheet" crossorigin href="/assets/operations-C4GvQRcz.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar"></div>
+        <div class="main-wrapper">
+            <div id="topnav"></div>
+
+            <div class="page-content">
+                <div class="page-header">
+                    <h2 id="page-title">Receipts</h2>
+                    <button class="btn-primary" id="new-operation-btn" style="width:auto">+ New Receipt</button>
+                </div>
+
+                <div class="filter-bar" id="status-filters" style="margin-bottom: 24px;">
+                    <button class="filter-pill active" data-status="">All</button>
+                    <button class="filter-pill" data-status="draft">Draft</button>
+                    <button class="filter-pill" data-status="waiting">Waiting</button>
+                    <button class="filter-pill" data-status="ready">Ready</button>
+                    <button class="filter-pill" data-status="done">Done</button>
+                    <button class="filter-pill" data-status="cancelled">Cancelled</button>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+                    <input type="text" class="input-field" id="search-input"
+                        placeholder="Search references or suppliers..." style="max-width: 400px; margin-bottom: 0;">
+
+                    <div class="view-toggles" style="display:flex; gap: 8px;">
+                        <button class="view-toggle-btn active" id="btn-view-list">≡ List</button>
+                        <button class="view-toggle-btn" id="btn-view-kanban">◫ Kanban</button>
+                    </div>
+                </div>
+
+                <div id="spinner" class="spinner-wrap" style="display:none;">
+                    <div class="spinner"></div>
+                </div>
+
+                <table class="data-table" id="ops-table">
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Supplier</th>
+                            <th>Warehouse</th>
+                            <th>Scheduled Date</th>
+                            <th>Lines</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ops-tbody">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+
+                <div id="kanban-view" class="kanban-board" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Configuration block to drive generic JS -->
+    <script>const OPERATION_TYPE = "receipt";</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api.js?v=2"></script>
+    <script src="../js/layout.js?v=2"></script>
+    <script src="../js/operations-list.js?v=2"></script>
+</body>
+
+</html>

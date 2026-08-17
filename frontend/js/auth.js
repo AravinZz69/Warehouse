@@ -1,6 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Elements
     const errorMsg = document.getElementById("error-msg");
     const successMsg = document.getElementById("success-msg");
 
@@ -11,7 +10,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const verifyForm = document.getElementById("verify-form");
     const resetForm = document.getElementById("reset-form");
 
-    // Utilities
     const showError = (msg) => {
         if (errorMsg) {
             errorMsg.textContent = msg;
@@ -33,15 +31,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (successMsg) successMsg.style.display = "none";
     };
 
-    // Global state for forgot password flow
-    let currentSessionId = "";
-    let currentResetToken = "";
-
-    // Global state for signup flow
-    let signupSessionId = "";
-    let signupPayload = null;
-
-    // -- SHARED STEP LOGIC --
     const switchStep = (stepNum) => {
         document.querySelectorAll(".step").forEach(el => el.classList.remove("active"));
         document.querySelectorAll(".step-dot").forEach(el => el.classList.remove("active"));
@@ -55,9 +44,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    const getSupabase = () => {
+        return window.supabaseClient || (window.supabase ? window.supabase.createClient(
+            window.VITE_SUPABASE_URL || "https://syncstock-coreinventory.supabase.co",
+            window.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5bmNzdG9jay1jb3JlaW52ZW50b3J5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2Nzg4ODAwMDAsImV4cCI6MjAwNDQ1NjAwMH0.sample_anon_key_for_development"
+        ) : null);
+    };
+
     // -- LOGIN LOGIC --
     if (loginForm) {
-        // Check for ?registered=1
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get("registered") === "1") {
             showSuccess("Account created successfully. Please log in.");
@@ -75,23 +70,40 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = document.getElementById("password").value;
 
             try {
-                const res = await window.apiFetch("/api/auth/login", {
-                    method: "POST",
-                    body: JSON.stringify({ email, password })
-                });
+                const supabase = getSupabase();
+                if (!supabase) throw new Error("Supabase client not loaded");
 
-                if (res && res.success) {
-                    localStorage.setItem("token", res.data.token);
-                    localStorage.setItem("user_name", res.data.user.name);
-                    localStorage.setItem("user_role", res.data.user.role);
-                    localStorage.setItem("user_id", res.data.user.id);
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+                if (error) {
+                    showError(error.message);
+                } else if (data && data.user) {
+                    // Fetch user profile
+                    const { data: profile } = await supabase
+                        .from("profiles")
+                        .select("*")
+                        .eq("id", data.user.id)
+                        .single();
+
+                    const isApproved = profile ? profile.is_approved : true;
+                    if (!isApproved) {
+                        await supabase.auth.signOut();
+                        showError("Your account is pending manager approval.");
+                        return;
+                    }
+
+                    const userName = profile?.name || data.user.user_metadata?.name || email.split("@")[0];
+                    const userRole = profile?.role || data.user.user_metadata?.role || "staff";
+
+                    localStorage.setItem("token", data.session.access_token);
+                    localStorage.setItem("user_name", userName);
+                    localStorage.setItem("user_role", userRole);
+                    localStorage.setItem("user_id", data.user.id);
 
                     window.location.href = "dashboard.html";
-                } else {
-                    showError(res ? res.message : "An error occurred");
                 }
             } catch (err) {
-                showError("Network error. Could not connect to server.");
+                showError(err.message || "Network error. Could not connect to server.");
             } finally {
                 btn.innerHTML = originalText;
                 btn.disabled = false;
@@ -114,61 +126,32 @@ document.addEventListener("DOMContentLoaded", () => {
             const password = document.getElementById("password").value;
             const role = document.getElementById("role").value;
 
-            signupPayload = { name, email, password, role };
-
             try {
-                const res = await window.apiFetch("/api/auth/signup-init", {
-                    method: "POST",
-                    body: JSON.stringify({ email })
+                const supabase = getSupabase();
+                if (!supabase) throw new Error("Supabase client not loaded");
+
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            name,
+                            role,
+                            is_approved: false
+                        }
+                    }
                 });
 
-                if (res && res.success) {
-                    signupSessionId = res.data.session_id;
-                    showSuccess("OTP sent to your email.");
-                    switchStep(2);
+                if (error) {
+                    showError(error.message);
                 } else {
-                    showError(res ? res.message : "An error occurred");
-                }
-            } catch (err) {
-                showError("Network error. Could not connect to server.");
-            } finally {
-                if (btn) {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                }
-            }
-        });
-    }
-
-    if (signupVerifyForm) {
-        signupVerifyForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            hideMessages();
-            const btn = document.getElementById("signup-btn-step2");
-            const originalText = btn.textContent;
-            btn.innerHTML = "<div class='spinner' style='width:20px; height:20px; border-width:2px; margin: 0 auto;'></div>";
-            btn.disabled = true;
-
-            const otp = document.getElementById("otp").value;
-            const fullPayload = { ...signupPayload, session_id: signupSessionId, otp: otp };
-
-            try {
-                const res = await window.apiFetch("/api/auth/signup", {
-                    method: "POST",
-                    body: JSON.stringify(fullPayload)
-                });
-
-                if (res && res.success) {
-                    const managerText = fullPayload.role === "manager" ? "super manager" : "manager";
-                    showSuccess(`Account created! A ${managerText} will approve your account in some time.`);
+                    showSuccess("Account registered! Pending manager approval.");
                     setTimeout(() => {
-                        window.location.href = "login.html";
-                    }, 4000);
-                } else {
-                    showError(res ? res.message : "An error occurred");
+                        window.location.href = "login.html?registered=1";
+                    }, 2500);
                 }
             } catch (err) {
-                showError("Network error. Could not connect to server.");
+                showError(err.message || "Network error. Could not connect to server.");
             } finally {
                 if (btn) {
                     btn.innerHTML = originalText;
@@ -179,7 +162,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // -- FORGOT PASSWORD LOGIC --
-
     if (forgotForm) {
         forgotForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -192,90 +174,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const email = document.getElementById("email").value;
 
             try {
-                const res = await window.apiFetch("/api/auth/forgot-password", {
-                    method: "POST",
-                    body: JSON.stringify({ email })
+                const supabase = getSupabase();
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + "/pages/login.html"
                 });
 
-                if (res && res.success) {
-                    currentSessionId = res.data.session_id;
-                    showSuccess("OTP sent to your email.");
-                    switchStep(2);
+                if (error) {
+                    showError(error.message);
                 } else {
-                    showError(res ? res.message : "An error occurred");
-                }
-            } catch (err) {
-                showError("Network error.");
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        });
-    }
-
-    if (verifyForm) {
-        verifyForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            hideMessages();
-            const btn = document.getElementById("btn-step-2");
-            const originalText = btn.textContent;
-            btn.textContent = "...";
-            btn.disabled = true;
-
-            const otp = document.getElementById("otp").value;
-
-            try {
-                const res = await window.apiFetch("/api/auth/verify-otp", {
-                    method: "POST",
-                    body: JSON.stringify({ session_id: currentSessionId, otp })
-                });
-
-                if (res && res.success) {
-                    currentResetToken = res.data.reset_token;
-                    switchStep(3);
-                } else {
-                    showError(res ? res.message : "An error occurred");
-                }
-            } catch (err) {
-                showError("Network error.");
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        });
-    }
-
-    if (resetForm) {
-        resetForm.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            hideMessages();
-
-            const new_password = document.getElementById("new_password").value;
-            const confirm_password = document.getElementById("confirm_password").value;
-
-            if (new_password !== confirm_password) {
-                showError("Passwords do not match");
-                return;
-            }
-
-            const btn = document.getElementById("btn-step-3");
-            const originalText = btn.textContent;
-            btn.textContent = "...";
-            btn.disabled = true;
-
-            try {
-                const res = await window.apiFetch("/api/auth/reset-password", {
-                    method: "POST",
-                    body: JSON.stringify({ reset_token: currentResetToken, new_password })
-                });
-
-                if (res && res.success) {
-                    showSuccess("Password updated successfully. Redirecting to login...");
-                    setTimeout(() => {
-                        window.location.href = "login.html";
-                    }, 2000);
-                } else {
-                    showError(res ? res.message : "An error occurred");
+                    showSuccess("Password reset instructions sent to your email.");
                 }
             } catch (err) {
                 showError("Network error.");

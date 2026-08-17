@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Adjustments - CoreInventory</title>
+  <link rel="stylesheet" crossorigin href="/assets/global-Bxd33pP9.css">
+  <link rel="stylesheet" crossorigin href="/assets/layout-DdjFAefI.css">
+  <link rel="stylesheet" crossorigin href="/assets/products-DZ7yDdNg.css">
+  <link rel="stylesheet" crossorigin href="/assets/operations-C4GvQRcz.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar"></div>
+        <div class="main-wrapper">
+            <div id="topnav"></div>
+
+            <div class="page-content">
+                <div class="page-header">
+                    <h2>Stock Adjustments</h2>
+                </div>
+
+                <div id="success-banner" class="inline-banner success" style="display:none;">
+                    <span id="success-text">Success</span>
+                </div>
+                <div id="error-banner" class="inline-banner error" style="display:none;">
+                    <span id="error-text">Error</span>
+                </div>
+
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label>Warehouse</label>
+                        <div id="adj-warehouse-container"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Product</label>
+                        <div id="adj-product-container"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Location</label>
+                        <div id="adj-location-container"></div>
+                    </div>
+                </div>
+
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr; align-items: end;">
+                    <div class="form-group">
+                        <label>Current Stock</label>
+                        <input type="text" id="current-stock" class="input-field" value="—" disabled
+                            style="text-align:center; font-weight:bold; font-size: 1.2rem;">
+                    </div>
+
+                    <div class="form-group">
+                        <label>New Quantity</label>
+                        <input type="number" id="new-quantity" class="input-field" min="0"
+                            placeholder="Enter new qty...">
+                    </div>
+
+                    <div class="form-group">
+                        <button class="btn-primary" id="adjust-btn" style="width:100%; margin-top: 4px;">
+                            💾 Save Adjustment
+                        </button>
+                    </div>
+                </div>
+
+                <div id="spinner" class="spinner-wrap" style="display:none;">
+                    <div class="spinner"></div>
+                </div>
+
+                <h3 style="margin-top: 32px; margin-bottom: 12px; font-size: 1.1rem; color: var(--text-muted);">Recent
+                    Adjustments</h3>
+                <table class="data-table" id="adj-table">
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Product</th>
+                            <th>Location</th>
+                            <th>Change</th>
+                            <th>Type</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adj-tbody">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+
+                <div id="empty-state" class="empty-state" style="display:none">
+                    No adjustment records found.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api.js?v=2"></script>
+    <script src="../js/layout.js"></script>
+    <script src="../js/searchable-select.js"></script>
+    <script src="../js/adjustments.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operation Form - CoreInventory</title>
+  <link rel="stylesheet" crossorigin href="/assets/global-Bxd33pP9.css">
+  <link rel="stylesheet" crossorigin href="/assets/layout-DdjFAefI.css">
+  <link rel="stylesheet" crossorigin href="/assets/operations-C4GvQRcz.css">
+</head>
+
+<body>
+    <div class="app-shell">
+        <div id="sidebar"></div>
+        <div class="main-wrapper">
+            <div id="topnav"></div>
+
+            <div class="page-content">
+                <div id="success-banner" class="inline-banner success">
+                    <span>✅ Validated successfully</span>
+                </div>
+                <div id="error-banner" class="inline-banner error">
+                    <span id="error-text">An error occurred</span>
+                </div>
+
+                <div id="staff-info-bar" class="staff-info-bar" style="display:none">
+                    👷 You are in staff view — you can only validate this operation.
+                </div>
+
+                <div class="page-header">
+                    <h2 id="page-title">Loading...</h2>
+                </div>
+
+                <div id="spinner" class="spinner-wrap">
+                    <div class="spinner"></div>
+                </div>
+
+                <div id="form-content" style="display:none;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label id="partner-label">Loading...</label>
+                            <input type="text" id="partner-input" class="input-field" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Scheduled Date</label>
+                            <input type="date" id="date-input" class="input-field">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="status-input" class="input-field">
+                                <option value="draft">Draft</option>
+                                <option value="waiting">Waiting</option>
+                                <option value="ready">Ready</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Warehouse</label>
+                            <div id="warehouse-input-container"></div>
+                        </div>
+                    </div>
+
+                    <div class="lines-card">
+                        <div class="lines-header">
+                            <h3 style="font-size: 1.1rem;">Products</h3>
+                            <button class="btn-secondary" id="add-line-btn"
+                                style="width:auto; padding: 6px 12px; font-size: 0.85rem;">+ Add Product Row</button>
+                        </div>
+
+                        <table class="data-table" style="margin-top:0;">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Location</th>
+                                    <th style="width:120px;">Quantity</th>
+                                    <th style="width:60px;">Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lines-tbody">
+                                <!-- Rendered dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="action-bar" id="action-bar" style="display:none;">
+                    <button class="btn-icon" id="back-link" style="margin-right:auto; margin-top:4px;">← Back</button>
+                    <button class="btn-secondary" id="save-btn" style="width:auto">Save</button>
+                    <button class="btn-primary" id="validate-btn" style="width:auto; display:none;">Validate</button>
+                    <button class="btn-outline" id="cancel-btn"
+                        style="width:auto; display:none; color: var(--accent); border-color: var(--accent);">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/api.js?v=2"></script>
+    <script src="../js/layout.js"></script>
+    <script src="../js/searchable-select.js"></script>
+    <script src="../js/operation-form.js?v=3"></script>
+</body>
+
+</html>
